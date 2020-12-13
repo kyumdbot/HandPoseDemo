@@ -751,18 +751,39 @@
                                     <action selector="selectCamerasPopUpButton:" target="XfG-lQ-9wD" id="rXF-g0-fa7"/>
                                 </connections>
                             </popUpButton>
+                            <popUpButton verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="kXm-Oq-e7Y">
+                                <rect key="frame" x="556" y="8" width="78" height="25"/>
+                                <popUpButtonCell key="cell" type="push" title="Item 1" bezelStyle="rounded" alignment="center" lineBreakMode="truncatingTail" state="on" borderStyle="border" inset="2" selectedItem="qwn-nC-Oxd" id="BZm-W9-Fxz">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="menu"/>
+                                    <menu key="menu" id="a3n-wW-hCa">
+                                        <items>
+                                            <menuItem title="Item 1" state="on" id="qwn-nC-Oxd"/>
+                                            <menuItem title="Item 2" id="1FK-e0-a2f"/>
+                                            <menuItem title="Item 3" id="bWM-ip-wez"/>
+                                        </items>
+                                    </menu>
+                                </popUpButtonCell>
+                                <connections>
+                                    <action selector="selectNumberOfHandsPopUpButton:" target="XfG-lQ-9wD" id="1it-qy-XmJ"/>
+                                </connections>
+                            </popUpButton>
                         </subviews>
                         <constraints>
+                            <constraint firstItem="kXm-Oq-e7Y" firstAttribute="top" secondItem="DiA-zX-hUT" secondAttribute="bottom" constant="10" id="AW4-KU-ugX"/>
                             <constraint firstItem="DiA-zX-hUT" firstAttribute="leading" secondItem="m2S-Jp-Qdl" secondAttribute="leading" id="LC9-Kl-kCF"/>
                             <constraint firstItem="ony-uF-qwZ" firstAttribute="top" secondItem="DiA-zX-hUT" secondAttribute="bottom" constant="10" id="M35-4m-PFl"/>
                             <constraint firstItem="ony-uF-qwZ" firstAttribute="leading" secondItem="m2S-Jp-Qdl" secondAttribute="leading" constant="10" id="MNb-DT-PL4"/>
+                            <constraint firstAttribute="bottom" secondItem="kXm-Oq-e7Y" secondAttribute="bottom" constant="12" id="SI4-Fm-csk"/>
                             <constraint firstAttribute="trailing" secondItem="DiA-zX-hUT" secondAttribute="trailing" id="UL0-NW-AES"/>
+                            <constraint firstAttribute="trailing" secondItem="kXm-Oq-e7Y" secondAttribute="trailing" constant="10" id="ddl-aA-Z16"/>
                             <constraint firstAttribute="bottom" secondItem="ony-uF-qwZ" secondAttribute="bottom" constant="12" id="eat-YM-TlW"/>
                             <constraint firstItem="DiA-zX-hUT" firstAttribute="top" secondItem="m2S-Jp-Qdl" secondAttribute="top" id="ikE-do-Gmq"/>
                         </constraints>
                     </view>
                     <connections>
                         <outlet property="camerasPopUpButton" destination="ony-uF-qwZ" id="IE2-Lc-2at"/>
+                        <outlet property="numberOfHandsPopUpButton" destination="kXm-Oq-e7Y" id="edL-s6-UY0"/>
                         <outlet property="previewView" destination="DiA-zX-hUT" id="4gq-pO-pHW"/>
                         <outlet property="videoMirrorLabel" destination="h2M-et-Su8" id="sDx-X6-mQA"/>
                         <outlet property="videoMirrorSwitch" destination="5xv-Qg-uIs" id="0Ox-lp-aI8"/>

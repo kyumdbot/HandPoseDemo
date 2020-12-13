@@ -16,6 +16,8 @@ class ViewController: NSViewController, AVCaptureVideoDataOutputSampleBufferDele
     @IBOutlet var videoMirrorSwitch : NSSwitch!
     @IBOutlet var videoMirrorLabel : NSTextField!
     @IBOutlet var camerasPopUpButton : NSPopUpButton!
+    @IBOutlet var numberOfHandsPopUpButton : NSPopUpButton!
+    
     
     var hasCameraDevice = false
     var cameraDevices : [AVCaptureDevice]!
@@ -23,8 +25,7 @@ class ViewController: NSViewController, AVCaptureVideoDataOutputSampleBufferDele
     var previewLayer : AVCaptureVideoPreviewLayer!
     var videoSession : AVCaptureSession!
     
-    
-    var jointLayers = [CAShapeLayer]()
+    var numberOfHands = 1
     
     var indexFingerJointPoints = [VNHumanHandPoseObservation.JointName : CGPoint]()
     var littleFingerJointPoints = [VNHumanHandPoseObservation.JointName : CGPoint]()
@@ -32,6 +33,9 @@ class ViewController: NSViewController, AVCaptureVideoDataOutputSampleBufferDele
     var ringFingerJointPoints = [VNHumanHandPoseObservation.JointName : CGPoint]()
     var thumbJointPoints = [VNHumanHandPoseObservation.JointName : CGPoint]()
 
+    var jointLayers = [CAShapeLayer]()
+    
+    
     
     // MARK: - viewLoad
     
@@ -41,11 +45,13 @@ class ViewController: NSViewController, AVCaptureVideoDataOutputSampleBufferDele
         // hide videoMirrorComponents
         hideVideoMirrorComponents()
         
+        // setup numberOfHandsPopUpButton
+        setupNumberOfHandsPopUpButton()
+        
         // setup Camera
         cameraDevices = getCameraDevices()
         setupCamerasPopUpButton()
         setupDefaultCamera()
-        
     }
 
     override var representedObject: Any? {
@@ -85,7 +91,14 @@ class ViewController: NSViewController, AVCaptureVideoDataOutputSampleBufferDele
             }
         }
     }
-
+    
+    func setupNumberOfHandsPopUpButton() {
+        numberOfHandsPopUpButton.removeAllItems()
+        
+        numberOfHandsPopUpButton.addItem(withTitle: "One hand")
+        numberOfHandsPopUpButton.addItem(withTitle: "Two hands")
+    }
+    
     
     // MARK: - Camera Devices
     
@@ -200,6 +213,10 @@ class ViewController: NSViewController, AVCaptureVideoDataOutputSampleBufferDele
         }
     }
     
+    @IBAction func selectNumberOfHandsPopUpButton(_ sender: NSPopUpButton) {
+        numberOfHands = sender.indexOfSelectedItem + 1
+    }
+    
     
     // MARK: - AVCaptureVideoDataOutputSampleBufferDelegate
     
@@ -214,29 +231,18 @@ class ViewController: NSViewController, AVCaptureVideoDataOutputSampleBufferDele
     // MARK: - Hand Pose Detection
     
     func handPoseDetection(sampleBuffer: CMSampleBuffer) {
-        var requestHandlerOptions: [VNImageOption: AnyObject] = [:]
-        
-        let cameraIntrinsicData = CMGetAttachment(sampleBuffer,
-                                                  key: kCMSampleBufferAttachmentKey_CameraIntrinsicMatrix,
-                                                  attachmentModeOut: nil)
-        
-        if cameraIntrinsicData != nil {
-            requestHandlerOptions[VNImageOption.cameraIntrinsics] = cameraIntrinsicData
-        }
-        
         guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
             print("Failed to obtain a CVPixelBuffer for the current output frame.")
             return
         }
         
         let request = VNDetectHumanHandPoseRequest()
+        request.maximumHandCount = numberOfHands
         let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, options: [:])
         
         try? handler.perform([request])
         
-        guard let observations = request.results else {
-            return
-        }
+        guard let observations = request.results else { return }
         
         DispatchQueue.main.async {
             self.removeAllJointLayers()
