@@ -726,11 +726,25 @@
                                             <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                         </textFieldCell>
                                     </textField>
+                                    <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="YVw-mn-kNW">
+                                        <rect key="frame" x="8" y="421" width="59" height="49"/>
+                                        <constraints>
+                                            <constraint firstAttribute="width" constant="55" id="U0r-J0-QXb"/>
+                                            <constraint firstAttribute="height" constant="49" id="gE5-uO-gCn"/>
+                                        </constraints>
+                                        <textFieldCell key="cell" lineBreakMode="clipping" alignment="center" title="10" id="4Cc-Pf-EW1">
+                                            <font key="font" metaFont="systemMedium" size="38"/>
+                                            <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                            <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                        </textFieldCell>
+                                    </textField>
                                 </subviews>
                                 <constraints>
+                                    <constraint firstItem="YVw-mn-kNW" firstAttribute="leading" secondItem="DiA-zX-hUT" secondAttribute="leading" constant="10" id="15J-cd-7qk"/>
                                     <constraint firstItem="h2M-et-Su8" firstAttribute="leading" secondItem="5xv-Qg-uIs" secondAttribute="trailing" constant="10" id="AI2-Ck-z4X"/>
                                     <constraint firstItem="5xv-Qg-uIs" firstAttribute="leading" secondItem="DiA-zX-hUT" secondAttribute="leading" constant="8" id="I0I-gj-vuq"/>
                                     <constraint firstItem="h2M-et-Su8" firstAttribute="centerY" secondItem="5xv-Qg-uIs" secondAttribute="centerY" id="eTx-8I-Q08"/>
+                                    <constraint firstItem="YVw-mn-kNW" firstAttribute="top" secondItem="DiA-zX-hUT" secondAttribute="top" constant="10" id="jGk-gr-9ab"/>
                                     <constraint firstAttribute="bottom" secondItem="5xv-Qg-uIs" secondAttribute="bottom" constant="8" id="plD-zx-XjP"/>
                                 </constraints>
                             </customView>
@@ -783,6 +797,7 @@
                     </view>
                     <connections>
                         <outlet property="camerasPopUpButton" destination="ony-uF-qwZ" id="IE2-Lc-2at"/>
+                        <outlet property="numberLabel" destination="YVw-mn-kNW" id="byy-MW-5An"/>
                         <outlet property="numberOfHandsPopUpButton" destination="kXm-Oq-e7Y" id="edL-s6-UY0"/>
                         <outlet property="previewView" destination="DiA-zX-hUT" id="4gq-pO-pHW"/>
                         <outlet property="videoMirrorLabel" destination="h2M-et-Su8" id="sDx-X6-mQA"/>
@@ -791,7 +806,7 @@
                 </viewController>
                 <customObject id="rPt-NT-nkU" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="75" y="935.5"/>
+            <point key="canvasLocation" x="75" y="935"/>
         </scene>
     </scenes>
 </document>

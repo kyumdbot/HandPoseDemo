@@ -17,6 +17,7 @@ class ViewController: NSViewController, AVCaptureVideoDataOutputSampleBufferDele
     @IBOutlet var videoMirrorLabel : NSTextField!
     @IBOutlet var camerasPopUpButton : NSPopUpButton!
     @IBOutlet var numberOfHandsPopUpButton : NSPopUpButton!
+    @IBOutlet var numberLabel : NSTextField!
     
     
     var hasCameraDevice = false
@@ -44,6 +45,9 @@ class ViewController: NSViewController, AVCaptureVideoDataOutputSampleBufferDele
 
         // hide videoMirrorComponents
         hideVideoMirrorComponents()
+        
+        // setup numberLabel
+        setupNumberLabel()
         
         // setup numberOfHandsPopUpButton
         setupNumberOfHandsPopUpButton()
@@ -97,6 +101,13 @@ class ViewController: NSViewController, AVCaptureVideoDataOutputSampleBufferDele
         
         numberOfHandsPopUpButton.addItem(withTitle: "One hand")
         numberOfHandsPopUpButton.addItem(withTitle: "Two hands")
+    }
+    
+    func setupNumberLabel() {
+        numberLabel.stringValue = ""
+        numberLabel.wantsLayer = true
+        numberLabel.layer?.backgroundColor = NSColor.white.cgColor
+        numberLabel.isHidden = true
     }
     
     
@@ -251,19 +262,23 @@ class ViewController: NSViewController, AVCaptureVideoDataOutputSampleBufferDele
     }
     
     func drawHandPose(_ handPoseObservations: [VNHumanHandPoseObservation]) {
-        if handPoseObservations.count <= 0 { return }
+        if handPoseObservations.count <= 0 {
+            numberLabel.isHidden = true
+            return
+        }
         
         for handPose in handPoseObservations {
             do {
                 let points = try handPose.recognizedPoints(.all)
-                drawJointLinesAndPoints(points)
+                drawJointPointsAndLines(points)
             } catch {
+                numberLabel.isHidden = true
                 print("Error: \(error.localizedDescription)")
             }
         }
     }
     
-    func drawJointLinesAndPoints(_ points: [VNHumanHandPoseObservation.JointName : VNRecognizedPoint]) {
+    func drawJointPointsAndLines(_ points: [VNHumanHandPoseObservation.JointName : VNRecognizedPoint]) {
         for (joint, point) in points {
             let jointPoint = previewLayer.layerPointConverted(fromCaptureDevicePoint: CGPoint(x: point.x, y: point.y))
             addToJointPoints(joint: joint, point: jointPoint)
@@ -291,6 +306,7 @@ class ViewController: NSViewController, AVCaptureVideoDataOutputSampleBufferDele
             drawJointPoints([.wrist : point])
         }
         
+        showHandStatus(wristPoint: wristPoint)
         removeAllJointPoints()
     }
     
@@ -410,6 +426,128 @@ class ViewController: NSViewController, AVCaptureVideoDataOutputSampleBufferDele
         ringFingerJointPoints.removeAll()
         thumbJointPoints.removeAll()
     }
+    
+    
+    // MARK: - Hand Status
+    
+    func showHandStatus(wristPoint: CGPoint?) {
+        if wristPoint == nil {
+            numberLabel.stringValue = ""
+            numberLabel.isHidden = true
+            return
+        }
+        
+        let indexFingerIsOutspread  = fingerJointIsOutspread(indexFingerJointPoints, wristPoint: wristPoint!)
+        let middleFingerIsOutspread = fingerJointIsOutspread(middleFingerJointPoints, wristPoint: wristPoint!)
+        let ringFingerIsOutspread   = fingerJointIsOutspread(ringFingerJointPoints, wristPoint: wristPoint!)
+        let littleFingerIsOutspread = fingerJointIsOutspread(littleFingerJointPoints, wristPoint: wristPoint!)
+        let thumbIsOutspread = thumbJointIsOutspread(thumbJointPoints, wristPoint: wristPoint!)
+        
+        let number = handPoseWithNumber([indexFingerIsOutspread, middleFingerIsOutspread,
+                                         ringFingerIsOutspread, littleFingerIsOutspread, thumbIsOutspread])
+        
+        if let num = number {
+            numberLabel.stringValue = "\(num)"
+            numberLabel.isHidden = false
+        } else {
+            numberLabel.stringValue = ""
+            numberLabel.isHidden = true
+        }
+    }
+    
+    func handPoseWithNumber(_ statusArray: [Bool]) -> Int? {
+        if statusArray.count < 5 {
+            return nil
+        }
+        
+        if statusArray[0] == false && statusArray[1] == false &&
+            statusArray[2] == false && statusArray[3] == false &&
+            statusArray[4] == false {
+            return 0
+        }
+        if statusArray[0] == true && statusArray[1] == false &&
+            statusArray[2] == false && statusArray[3] == false &&
+            statusArray[4] == false {
+            return 1
+        }
+        if statusArray[0] == true && statusArray[1] == true &&
+            statusArray[2] == false && statusArray[3] == false &&
+            statusArray[4] == false {
+            return 2
+        }
+        if statusArray[0] == true && statusArray[1] == true &&
+            statusArray[2] == true && statusArray[3] == false &&
+            statusArray[4] == false {
+            return 3
+        }
+        if statusArray[0] == false && statusArray[1] == true &&
+            statusArray[2] == true && statusArray[3] == true &&
+            statusArray[4] == false {
+            return 3
+        }
+        if statusArray[0] == true && statusArray[1] == true &&
+            statusArray[2] == true && statusArray[3] == true &&
+            statusArray[4] == false {
+            return 4
+        }
+        if statusArray[0] == true && statusArray[1] == true &&
+            statusArray[2] == true && statusArray[3] == true &&
+            statusArray[4] == true {
+            return 5
+        }
+        
+        return nil
+    }
+    
+    func thumbJointIsOutspread(_ points: [VNHumanHandPoseObservation.JointName : CGPoint], wristPoint: CGPoint) -> Bool {
+        // TODO
+        //
+        return false
+    }
+    
+    func fingerJointIsOutspread(_ points: [VNHumanHandPoseObservation.JointName : CGPoint], wristPoint: CGPoint) -> Bool {
+        var tipPoint : CGPoint?
+        var dipPoint : CGPoint?
+        var pipPoint : CGPoint?
+        var mcpPoint : CGPoint?
+        
+        for (joint, point) in points {
+            switch joint {
+            case .indexTip, .littleTip, .middleTip, .ringTip, .thumbTip:
+                tipPoint = point
+            case .indexDIP, .littleDIP, .middleDIP, .ringDIP, .thumbIP:
+                dipPoint = point
+            case .indexPIP, .littlePIP, .middlePIP, .ringPIP, .thumbMP:
+                pipPoint = point
+            case .indexMCP, .littleMCP, .middleMCP, .ringMCP, .thumbCMC:
+                mcpPoint = point
+            default:
+                break
+            }
+        }
+        
+        if tipPoint == nil || dipPoint == nil ||
+            pipPoint == nil || mcpPoint == nil {
+            return false
+        }
+        
+        let tipToWristDistance = twoPointsDistance(point1: tipPoint!, point2: wristPoint)
+        let dipToWristDistance = twoPointsDistance(point1: dipPoint!, point2: wristPoint)
+        let mcpToWristDistance = twoPointsDistance(point1: mcpPoint!, point2: wristPoint)
+        
+        if tipToWristDistance > mcpToWristDistance &&
+            dipToWristDistance > mcpToWristDistance {
+            return true
+        }
+        return false
+    }
+    
+    func twoPointsDistance(point1: CGPoint, point2: CGPoint) -> CGFloat {
+        let a = point1.x - point2.x
+        let b = point1.y - point2.y
+        return hypot(a, b)
+    }
+    
 }
 
 
