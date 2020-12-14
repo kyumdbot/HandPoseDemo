@@ -26,7 +26,7 @@ class ViewController: NSViewController, AVCaptureVideoDataOutputSampleBufferDele
     var previewLayer : AVCaptureVideoPreviewLayer!
     var videoSession : AVCaptureSession!
     
-    var numberOfHands = 1
+    var jointLayers = [CAShapeLayer]()
     
     var indexFingerJointPoints = [VNHumanHandPoseObservation.JointName : CGPoint]()
     var littleFingerJointPoints = [VNHumanHandPoseObservation.JointName : CGPoint]()
@@ -34,8 +34,8 @@ class ViewController: NSViewController, AVCaptureVideoDataOutputSampleBufferDele
     var ringFingerJointPoints = [VNHumanHandPoseObservation.JointName : CGPoint]()
     var thumbJointPoints = [VNHumanHandPoseObservation.JointName : CGPoint]()
 
-    var jointLayers = [CAShapeLayer]()
-    
+    var numberOfHands = 1
+    var handPoseNumberArray = [Int?]()
     
     
     // MARK: - viewLoad
@@ -256,6 +256,7 @@ class ViewController: NSViewController, AVCaptureVideoDataOutputSampleBufferDele
         guard let observations = request.results else { return }
         
         DispatchQueue.main.async {
+            self.handPoseNumberArray.removeAll()
             self.removeAllJointLayers()
             self.drawHandPose(observations)
         }
@@ -275,6 +276,28 @@ class ViewController: NSViewController, AVCaptureVideoDataOutputSampleBufferDele
                 numberLabel.isHidden = true
                 print("Error: \(error.localizedDescription)")
             }
+        }
+        
+        showSumOfHandPoseNumber()
+    }
+    
+    func showSumOfHandPoseNumber() {
+        var hasNumber = false
+        var sum = 0
+        
+        for num in handPoseNumberArray {
+            if num != nil {
+                hasNumber = true
+                sum += num!
+            }
+        }
+        
+        if hasNumber {
+            numberLabel.stringValue = "\(sum)"
+            numberLabel.isHidden = false
+        } else {
+            numberLabel.stringValue = ""
+            numberLabel.isHidden = true
         }
     }
     
@@ -306,7 +329,9 @@ class ViewController: NSViewController, AVCaptureVideoDataOutputSampleBufferDele
             drawJointPoints([.wrist : point])
         }
         
-        showHandStatus(wristPoint: wristPoint)
+        let number = analyzeHandPoseNumber(wristPoint: wristPoint)
+        handPoseNumberArray.append(number)
+        
         removeAllJointPoints()
     }
     
@@ -430,82 +455,104 @@ class ViewController: NSViewController, AVCaptureVideoDataOutputSampleBufferDele
     
     // MARK: - Hand Status
     
-    func showHandStatus(wristPoint: CGPoint?) {
-        if wristPoint == nil {
-            numberLabel.stringValue = ""
-            numberLabel.isHidden = true
-            return
-        }
+    func analyzeHandPoseNumber(wristPoint: CGPoint?) -> Int? {
+        let indexFingerIsOutspread  = fingerJointIsOutspread(indexFingerJointPoints, wristPoint: wristPoint)
+        let middleFingerIsOutspread = fingerJointIsOutspread(middleFingerJointPoints, wristPoint: wristPoint)
+        let ringFingerIsOutspread   = fingerJointIsOutspread(ringFingerJointPoints, wristPoint: wristPoint)
+        let littleFingerIsOutspread = fingerJointIsOutspread(littleFingerJointPoints, wristPoint: wristPoint)
         
-        let indexFingerIsOutspread  = fingerJointIsOutspread(indexFingerJointPoints, wristPoint: wristPoint!)
-        let middleFingerIsOutspread = fingerJointIsOutspread(middleFingerJointPoints, wristPoint: wristPoint!)
-        let ringFingerIsOutspread   = fingerJointIsOutspread(ringFingerJointPoints, wristPoint: wristPoint!)
-        let littleFingerIsOutspread = fingerJointIsOutspread(littleFingerJointPoints, wristPoint: wristPoint!)
-        let thumbIsOutspread = thumbJointIsOutspread(thumbJointPoints, wristPoint: wristPoint!)
+        let thumbIsOutspread = thumbJointIsOutspread(thumbJointPoints,
+                                                     indexMCPPoint: indexFingerJointPoints[.indexMCP],
+                                                     middleMCPPoint: middleFingerJointPoints[.middleMCP],
+                                                     wristPoint: wristPoint)
+        
+        //print("Thumb Is Outspread: \(String(describing: thumbIsOutspread))")
         
         let number = handPoseWithNumber([indexFingerIsOutspread, middleFingerIsOutspread,
                                          ringFingerIsOutspread, littleFingerIsOutspread, thumbIsOutspread])
         
-        if let num = number {
-            numberLabel.stringValue = "\(num)"
-            numberLabel.isHidden = false
-        } else {
-            numberLabel.stringValue = ""
-            numberLabel.isHidden = true
-        }
+        
+        return number
+        
+
     }
     
-    func handPoseWithNumber(_ statusArray: [Bool]) -> Int? {
-        if statusArray.count < 5 {
+    func handPoseWithNumber(_ statusArray: [Bool?]) -> Int? {
+        var array = [Bool]()
+        for status in statusArray {
+            if status == nil {
+                return nil
+            }
+            array.append(status!)
+        }
+        
+        if array.count < 5 {
             return nil
         }
         
-        if statusArray[0] == false && statusArray[1] == false &&
-            statusArray[2] == false && statusArray[3] == false &&
-            statusArray[4] == false {
+        if array[0] == false && array[1] == false &&
+            array[2] == false && array[3] == false &&
+            array[4] == false {
             return 0
         }
-        if statusArray[0] == true && statusArray[1] == false &&
-            statusArray[2] == false && statusArray[3] == false &&
-            statusArray[4] == false {
+        if array[0] == true && array[1] == false &&
+            array[2] == false && array[3] == false &&
+            array[4] == false {
             return 1
         }
-        if statusArray[0] == true && statusArray[1] == true &&
-            statusArray[2] == false && statusArray[3] == false &&
-            statusArray[4] == false {
+        if array[0] == true && array[1] == true &&
+            array[2] == false && array[3] == false &&
+            array[4] == false {
             return 2
         }
-        if statusArray[0] == true && statusArray[1] == true &&
-            statusArray[2] == true && statusArray[3] == false &&
-            statusArray[4] == false {
+        if array[0] == true && array[1] == true &&
+            array[2] == true && array[3] == false &&
+            array[4] == false {
             return 3
         }
-        if statusArray[0] == false && statusArray[1] == true &&
-            statusArray[2] == true && statusArray[3] == true &&
-            statusArray[4] == false {
-            return 3
-        }
-        if statusArray[0] == true && statusArray[1] == true &&
-            statusArray[2] == true && statusArray[3] == true &&
-            statusArray[4] == false {
+        if array[0] == true && array[1] == true &&
+            array[2] == true && array[3] == true &&
+            array[4] == false {
             return 4
         }
-        if statusArray[0] == true && statusArray[1] == true &&
-            statusArray[2] == true && statusArray[3] == true &&
-            statusArray[4] == true {
+        if array[0] == true && array[1] == true &&
+            array[2] == true && array[3] == true &&
+            array[4] == true {
             return 5
         }
         
         return nil
     }
     
-    func thumbJointIsOutspread(_ points: [VNHumanHandPoseObservation.JointName : CGPoint], wristPoint: CGPoint) -> Bool {
-        // TODO
-        //
-        return false
+    func thumbJointIsOutspread(_ points: [VNHumanHandPoseObservation.JointName : CGPoint],
+                               indexMCPPoint: CGPoint?,
+                               middleMCPPoint: CGPoint?,
+                               wristPoint: CGPoint?) -> Bool?
+    {
+        guard let indexMCPPoint = indexMCPPoint,
+              let middleMCPPoint = middleMCPPoint,
+              let wristPoint = wristPoint else { return nil }
+        
+        guard let thumbTipPoint = points[.thumbTip],
+              let thumbIPPoint = points[.thumbIP] else { return nil }
+        
+        let thumbTipToIndexMCPDistance = twoPointsDistance(point1: thumbTipPoint, point2: indexMCPPoint)
+        let thumbTipToMiddleMCPDistance = twoPointsDistance(point1: thumbTipPoint, point2: middleMCPPoint)
+        
+        if thumbTipToMiddleMCPDistance < thumbTipToIndexMCPDistance {
+            return false
+        }
+        
+        let thumbTipToWristDistance = twoPointsDistance(point1: thumbTipPoint, point2: wristPoint)
+        let thumbIPToWristDistance = twoPointsDistance(point1: thumbIPPoint, point2: wristPoint)
+        
+        if thumbTipToWristDistance < thumbIPToWristDistance {
+            return false
+        }
+        return true
     }
     
-    func fingerJointIsOutspread(_ points: [VNHumanHandPoseObservation.JointName : CGPoint], wristPoint: CGPoint) -> Bool {
+    func fingerJointIsOutspread(_ points: [VNHumanHandPoseObservation.JointName : CGPoint], wristPoint: CGPoint?) -> Bool? {
         var tipPoint : CGPoint?
         var dipPoint : CGPoint?
         var pipPoint : CGPoint?
@@ -527,13 +574,13 @@ class ViewController: NSViewController, AVCaptureVideoDataOutputSampleBufferDele
         }
         
         if tipPoint == nil || dipPoint == nil ||
-            pipPoint == nil || mcpPoint == nil {
-            return false
+            pipPoint == nil || mcpPoint == nil || wristPoint == nil {
+            return nil
         }
         
-        let tipToWristDistance = twoPointsDistance(point1: tipPoint!, point2: wristPoint)
-        let dipToWristDistance = twoPointsDistance(point1: dipPoint!, point2: wristPoint)
-        let mcpToWristDistance = twoPointsDistance(point1: mcpPoint!, point2: wristPoint)
+        let tipToWristDistance = twoPointsDistance(point1: tipPoint!, point2: wristPoint!)
+        let dipToWristDistance = twoPointsDistance(point1: dipPoint!, point2: wristPoint!)
+        let mcpToWristDistance = twoPointsDistance(point1: mcpPoint!, point2: wristPoint!)
         
         if tipToWristDistance > mcpToWristDistance &&
             dipToWristDistance > mcpToWristDistance {
