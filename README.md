@@ -37,7 +37,7 @@
 
 ## 其他
 
-關於手指 (Fingers) 與大拇指 (Thumb) 各節點的位置與名稱，我擷取了 [Detect Body and Hand Pose with Vision](https://developer.apple.com/videos/play/wwdc2020/10653/) 這個 Session 的兩個畫面給各位參考：
+關於手指 (Fingers) 與大拇指 (Thumb) 各節點的位置與名稱，我擷取了 [Detect Body and Hand Pose with Vision](https://developer.apple.com/videos/play/wwdc2020/10653/) 這個 session 的兩個畫面給各位參考：
 
 ![fingers](imgs/fingers.png)
 ![thumb](imgs/thumb.png)
