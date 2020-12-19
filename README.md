@@ -47,6 +47,6 @@
 ![thumb](imgs/thumb.png)
 
 
-想知道更多關於 iOS/macOS 姿勢檢測的資訊，可參考 WWDC 2020 的影片：[Detect Body and Hand Pose with Vision](https://developer.apple.com/videos/play/wwdc2020/10653/)。
+想知道更多關於 iOS/macOS 姿勢檢測 API 的資訊，可參考 WWDC 2020 的影片：[Detect Body and Hand Pose with Vision](https://developer.apple.com/videos/play/wwdc2020/10653/)。
 
 
